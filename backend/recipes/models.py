@@ -1,6 +1,12 @@
 from django.db import models
+from django.core.validators import RegexValidator, ValidationError
 
 from users.models import User
+
+
+def validate_more_or_equal_one(value):
+    if value < 1:
+        raise ValidationError('Not more or equal one')
 
 
 class Tag(models.Model):
@@ -16,12 +22,17 @@ class Tag(models.Model):
         null=False,
         unique=True,
     )
-    # СДЕЛАТЬ ВАЛИДАТОР ДЛЯ ПОЛЯ ЦВЕТА
     color = models.CharField(
         'Tag color',
         max_length=16,
         null=False,
         unique=True,
+        validators=[
+            RegexValidator(
+                regex=r'^#[0-9a-fA-F]{6}$',
+                message='Color format error (#AABBCC)',
+            )
+        ],
     )
 
     def __str__(self):
@@ -31,7 +42,7 @@ class Tag(models.Model):
 class Recipe(models.Model):
     name = models.CharField(
         'Recipe name',
-        max_length=250,
+        max_length=200,
         blank=False,
         db_index=True,
     )
@@ -59,6 +70,7 @@ class Recipe(models.Model):
     cooking_time = models.IntegerField(
         'cooking time',
         null=True,
+        validators=[validate_more_or_equal_one]
     )
     favorite = models.ManyToManyField(
         User,
