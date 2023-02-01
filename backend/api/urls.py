@@ -6,9 +6,8 @@ from api import views
 app_name = 'api'
 
 router = DefaultRouter()
+router.register('tags', views.TagsViewSet)
 
-
-# router.register('categories', views.CategoryViewSet)
 # router.register('genres', views.GenresViewSet)
 # router.register('titles', views.TitlesViewSet)
 # router.register(
@@ -19,7 +18,7 @@ router = DefaultRouter()
 #     views.CommentViewSet, basename='comments')
 
 urlpatterns = [
+    path('', include(router.urls)),
     path('', include('djoser.urls')),
     path('auth/', include('djoser.urls.authtoken')),
-    # path('', include(router.urls)),
 ]
