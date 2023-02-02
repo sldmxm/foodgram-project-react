@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from cart.models import Cart
-from .models import Recipe, Ingredient, IngredientUnit, RecipeIngredients, Tag
+from .models import Recipe, Ingredient, RecipeIngredients, Tag
 
 
 class RecipeIngredientsInline(admin.TabularInline):
@@ -23,11 +23,12 @@ class RecipeAdmin(admin.ModelAdmin):
     list_filter = ('author', 'name', 'tags', )
     empty_value_display = 'n/a'
     list_editable = ('author', )
-    exclude = ('favorite', )
+    # exclude = ('favorite', )
     readonly_fields = ('favorite_count',)
     fields = (
         ('name',
          'favorite_count',
+         'favorite',
          ),
         'author',
         'text',
@@ -37,34 +38,20 @@ class RecipeAdmin(admin.ModelAdmin):
     )
 
 
-class IngredientUnitInline(admin.TabularInline):
-    model = Ingredient.unit.through
+class Ingredientmeasurement_unitInline(admin.TabularInline):
+    model = Ingredient
     extra = 1
-
-
-@admin.register(IngredientUnit)
-class IngredientUnitAdmin(admin.ModelAdmin):
-    inlines = [
-        IngredientUnitInline,
-    ]
 
 
 @admin.register(Ingredient)
 class IngredientAdmin(admin.ModelAdmin):
-    inlines = [
-        IngredientUnitInline,
-    ]
-    exclude = ('unit', )
     list_display = (
         'name',
-        'units',
+        'measurement_unit',
     )
     search_fields = ('name', )
-    list_filter = ('name', 'unit', )
+    list_filter = ('name', 'measurement_unit', )
     empty_value_display = 'n/a'
-
-    def units(self, obj):
-        return ", ".join([i.name for i in obj.unit.all()])
 
 
 @admin.register(Tag)

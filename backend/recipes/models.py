@@ -92,77 +92,38 @@ class Recipe(models.Model):
         ordering = ('-pub_date',)
 
 
-class IngredientUnit(models.Model):
-    name = models.CharField(
-        'Measurement unit',
-        max_length=16,
-        null=False,
-        unique=True,
-    )
-
-    def __str__(self):
-        return f'{self.name}'
-
-    class Meta:
-        ordering = ('name',)
-
-
 class Ingredient(models.Model):
     name = models.CharField(
         'Ingredient name',
         max_length=150,
         db_index=True,
-        unique=True,
     )
-    unit = models.ManyToManyField(
-        IngredientUnit,
-        verbose_name='Ingredient measurement unit',
-        related_name='ingredients',
-        through='IngredientWithUnit'
+    measurement_unit = models.CharField(
+        'Measurement unit',
+        max_length=16,
+        null=False,
     )
 
     def __str__(self):
-        return f'{self.name} ({self.unit})'
+        return f'{self.name} ({self.measurement_unit})'
 
     class Meta:
         ordering = ('name',)
 
 
-class IngredientWithUnit(models.Model):
-    ingredient = models.ForeignKey(
-        Ingredient,
-        verbose_name='Ingredient',
-        on_delete=models.CASCADE,
-        null=False,
-        related_name='ingredients_with_unit',
-    )
-    unit = models.ForeignKey(
-        IngredientUnit,
-        verbose_name='Ingredient measurement unit',
-        on_delete=models.CASCADE,
-        null=False,
-        related_name='ingredients_with_unit',
-    )
-
-    def __str__(self):
-        return f'{self.ingredient.name} ({self.unit.name})'
-
-    class Meta:
-        ordering = ('ingredient__name',)
-
-
 class RecipeIngredients(models.Model):
         ingredient = models.ForeignKey(
-            IngredientWithUnit,
+            Ingredient,
             verbose_name='Ingredient with measurement unit',
             on_delete=models.CASCADE,
             null=False,
+            related_name='recipes',
         )
         recipe = models.ForeignKey(
             Recipe,
             verbose_name='Recipe',
             on_delete=models.CASCADE,
             null=False,
-            related_name='ingredients'
+            related_name='ingredients',
         )
         amount = models.IntegerField('amount of ingredient')

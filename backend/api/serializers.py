@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from djoser.serializers import UserSerializer
 
-from recipes.models import Tag, Recipe, RecipeIngredients, IngredientWithUnit, Ingredient
+from recipes.models import Tag, Recipe, RecipeIngredients, Ingredient
 from users.models import User, Follow
 
 
@@ -44,21 +44,22 @@ class TagSerializer(serializers.ModelSerializer):
 
 class RecipeIngredientsSerializer(serializers.ModelSerializer):
     ingredient = serializers.SlugRelatedField(
-        slug_field='ingredient.name',
-        # queryset=IngredientWithUnit.objects.all(),
-        read_only=True,
+        slug_field='name',
+        queryset=Ingredient.objects.all(),
     )
-    # measurement_unit = serializers.SlugRelatedField(
-    #     slug_field='unit__id',
-    #     read_only=True,
-    # )
+    id = serializers.CharField(
+        source='ingredient.id'
+    )
+    measurement_unit = serializers.CharField(
+        source='ingredient.measurement_unit'
+    )
 
     class Meta:
         model = RecipeIngredients
         fields = (
             'id',
             'ingredient',
-            # 'measurement_unit',
+            'measurement_unit',
             'amount',
         )
 
@@ -99,8 +100,8 @@ class RecipeSerializer(serializers.ModelSerializer):
             return (
                 self.context['request'].user.is_authenticated
                 and
-                self.context['request'].user.cart.filter(
-                    recipes=obj
+                self.context['request'].user.cart.recipes.filter(
+                    id=obj.id
                 ).exists()
                 )
         except User.cart.RelatedObjectDoesNotExist:
