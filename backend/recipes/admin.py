@@ -20,7 +20,7 @@ class RecipeAdmin(admin.ModelAdmin):
         'favorite_count',
     )
     search_fields = ('name', )
-    list_filter = ('author', 'name', 'tag', )
+    list_filter = ('author', 'name', 'tags', )
     empty_value_display = 'n/a'
     list_editable = ('author', )
     exclude = ('favorite', )
@@ -32,7 +32,7 @@ class RecipeAdmin(admin.ModelAdmin):
         'author',
         'text',
         'image',
-        'tag',
+        'tags',
         'cooking_time',
     )
 

@@ -62,7 +62,7 @@ class Recipe(models.Model):
         upload_to='recipes_photos/',
         blank=True,
     )
-    tag = models.ManyToManyField(
+    tags = models.ManyToManyField(
         Tag,
         related_name='recipes',
         blank=True,
@@ -118,7 +118,7 @@ class Ingredient(models.Model):
         IngredientUnit,
         verbose_name='Ingredient measurement unit',
         related_name='ingredients',
-        through='IngredientsUnits'
+        through='IngredientWithUnit'
     )
 
     def __str__(self):
@@ -128,7 +128,7 @@ class Ingredient(models.Model):
         ordering = ('name',)
 
 
-class IngredientsUnits(models.Model):
+class IngredientWithUnit(models.Model):
     ingredient = models.ForeignKey(
         Ingredient,
         verbose_name='Ingredient',
@@ -153,7 +153,7 @@ class IngredientsUnits(models.Model):
 
 class RecipeIngredients(models.Model):
         ingredient = models.ForeignKey(
-            IngredientsUnits,
+            IngredientWithUnit,
             verbose_name='Ingredient with measurement unit',
             on_delete=models.CASCADE,
             null=False,
@@ -163,5 +163,6 @@ class RecipeIngredients(models.Model):
             verbose_name='Recipe',
             on_delete=models.CASCADE,
             null=False,
+            related_name='ingredients'
         )
         amount = models.IntegerField('amount of ingredient')

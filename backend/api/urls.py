@@ -6,7 +6,8 @@ from api import views
 app_name = 'api'
 
 router = DefaultRouter()
-router.register('tags', views.TagsViewSet)
+router.register('tags', views.TagViewSet)
+router.register('recipes', views.RecipeViewSet)
 
 # router.register('genres', views.GenresViewSet)
 # router.register('titles', views.TitlesViewSet)
