@@ -64,8 +64,8 @@ class Recipe(models.Model):
     )
     tags = models.ManyToManyField(
         Tag,
-        related_name='recipes',
         blank=True,
+        through='RecipesTags',
     )
     cooking_time = models.IntegerField(
         'cooking time',
@@ -90,6 +90,21 @@ class Recipe(models.Model):
 
     class Meta:
         ordering = ('-pub_date',)
+
+
+class RecipesTags(models.Model):
+    tag = models.ForeignKey(
+        Tag,
+        on_delete=models.CASCADE,
+        null=False,
+        related_name='recipes',
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        null=False,
+        related_name='recipe_tags',
+    )
 
 
 class Ingredient(models.Model):
