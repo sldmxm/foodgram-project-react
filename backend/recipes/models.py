@@ -76,6 +76,7 @@ class Recipe(models.Model):
         User,
         related_name='favorite_recipes',
         blank=True,
+        through='FavoriteRecipes',
     )
     pub_date = models.DateTimeField(
         auto_now_add=True,
@@ -104,6 +105,20 @@ class RecipesTags(models.Model):
         on_delete=models.CASCADE,
         null=False,
         related_name='recipe_tags',
+    )
+
+
+class FavoriteRecipes(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        null=False,
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        null=False,
+        related_name='fans',
     )
 
 

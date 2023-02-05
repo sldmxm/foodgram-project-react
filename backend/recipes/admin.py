@@ -35,12 +35,10 @@ class RecipeAdmin(admin.ModelAdmin):
     list_filter = ('author', 'name', 'tags', )
     empty_value_display = 'n/a'
     list_editable = ('author', )
-    # exclude = ('favorite', )
     readonly_fields = ('favorite_count',)
     fields = (
         ('name',
          'favorite_count',
-         'favorite',
          ),
         'author',
         'text',

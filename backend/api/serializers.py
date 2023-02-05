@@ -1,12 +1,22 @@
 import base64
+from collections import OrderedDict
 
 from django.core.files.base import ContentFile
+from django.shortcuts import get_object_or_404
 from rest_framework import serializers
+from rest_framework.validators import UniqueTogetherValidator
 
 from djoser.serializers import UserSerializer
 
-from recipes.models import Tag, Recipe, RecipeIngredients, Ingredient, RecipesTags
+from recipes.models import (
+    Tag,
+    Recipe,
+    RecipeIngredients,
+    Ingredient,
+    RecipesTags,
+)
 from users.models import User, Follow
+from api.validators import DoubleValidator
 
 
 class UserSerializer(UserSerializer):
@@ -43,7 +53,16 @@ class TagSerializer(serializers.ModelSerializer):
             'color',
             'slug',
         )
-        # lookup_field = 'slug'
+
+
+class IngredientSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Ingredient
+        fields = (
+            'id',
+            'name',
+            'measurement_unit',
+        )
 
 
 class RecipeIngredientsSerializer(serializers.ModelSerializer):
@@ -225,9 +244,79 @@ class RecipeEditSerializer(RecipeViewSerializer):
             tags=tags
         )
 
-        # Recipe.objects.filter(id=instance.id).update(**validated_data)
-        for key, value in validated_data.items():
-            setattr(instance, key, value)
+        for field, value in validated_data.items():
+            setattr(instance, field, value)
 
         instance.save()
         return instance
+
+
+class ShortRecipeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Recipe
+        fields = (
+            'id',
+            'name',
+            'image',
+            'cooking_time',
+        )
+
+
+class SubscriptionsSerializer(UserSerializer):
+    recipes = serializers.SerializerMethodField()
+    recipes_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = (
+            'email',
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'is_subscribed',
+            'recipes',
+            'recipes_count',
+        )
+
+    def get_recipes_count(self, obj):
+        return obj.recipes.count()
+
+    def get_recipes(self, obj):
+        try:
+            recipes_limit = int(self.context['request'].query_params.get('recipes_limit'))
+            recipes = obj.recipes.all()[:recipes_limit]
+        except Exception:
+            recipes = obj.recipes.all()
+
+        return ShortRecipeSerializer(recipes, many=True).data
+
+
+class SubscriptionSerializer(serializers.ModelSerializer):
+    author = serializers.SlugRelatedField(
+        queryset=User.objects.all(),
+        slug_field='id',
+        default=serializers.CurrentUserDefault(),
+    )
+    follower = serializers.SlugRelatedField(
+        read_only=True,
+        slug_field='id',
+        default=serializers.CurrentUserDefault(),
+    )
+
+    class Meta:
+        model = Follow
+        fields = (
+            'follower',
+            'author',
+        )
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Follow.objects.all(),
+                fields=fields,
+            ),
+            DoubleValidator(
+                fields=fields,
+                message="You can't follow yourself",
+            ),
+        ]
