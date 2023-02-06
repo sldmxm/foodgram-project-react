@@ -142,18 +142,18 @@ class Ingredient(models.Model):
 
 
 class RecipeIngredients(models.Model):
-        ingredient = models.ForeignKey(
-            Ingredient,
-            verbose_name='Ingredient with measurement unit',
-            on_delete=models.CASCADE,
-            null=False,
-            related_name='recipes',
-        )
-        recipe = models.ForeignKey(
-            Recipe,
-            verbose_name='Recipe',
-            on_delete=models.CASCADE,
-            null=False,
-            related_name='ingredients',
-        )
-        amount = models.IntegerField('amount of ingredient')
+    ingredient = models.ForeignKey(
+        Ingredient,
+        verbose_name='Ingredient with measurement unit',
+        on_delete=models.CASCADE,
+        null=False,
+        related_name='recipes',
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        verbose_name='Recipe',
+        on_delete=models.CASCADE,
+        null=False,
+        related_name='ingredients',
+    )
+    amount = models.IntegerField('amount of ingredient')

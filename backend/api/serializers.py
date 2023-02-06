@@ -1,8 +1,6 @@
 import base64
-from collections import OrderedDict
 
 from django.core.files.base import ContentFile
-from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
@@ -196,7 +194,9 @@ class RecipeEditSerializer(RecipeViewSerializer):
     def ingredients_and_tags_add(self, recipe, ingredients, tags):
         for ingredient in ingredients:
             RecipeIngredients.objects.create(
-                ingredient=Ingredient.objects.get(id=ingredient['ingredient']['id']),
+                ingredient=Ingredient.objects.get(
+                    id=ingredient['ingredient']['id']
+                ),
                 amount=ingredient['amount'],
                 recipe=Recipe.objects.get(id=recipe.id),
             )
@@ -230,13 +230,19 @@ class RecipeEditSerializer(RecipeViewSerializer):
         )
         for field in required_fields:
             if field not in validated_data:
-                raise serializers.ValidationError({f'{field}': ["This field is required."]})
+                raise serializers.ValidationError(
+                    {f'{field}': ["This field is required."]}
+                )
 
         ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
 
-        RecipeIngredients.objects.filter(recipe_id=instance.id).delete()
-        RecipesTags.objects.filter(recipe_id=instance.id).delete()
+        RecipeIngredients.objects.filter(
+            recipe_id=instance.id
+        ).delete()
+        RecipesTags.objects.filter(
+            recipe_id=instance.id
+        ).delete()
 
         self.ingredients_and_tags_add(
             recipe=instance,
@@ -284,7 +290,9 @@ class SubscriptionsSerializer(UserSerializer):
 
     def get_recipes(self, obj):
         try:
-            recipes_limit = int(self.context['request'].query_params.get('recipes_limit'))
+            recipes_limit = int(
+                self.context['request'].query_params.get('recipes_limit')
+            )
             recipes = obj.recipes.all()[:recipes_limit]
         except Exception:
             recipes = obj.recipes.all()

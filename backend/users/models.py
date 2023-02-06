@@ -12,7 +12,8 @@ class User(AbstractUser):
         validators=[
             RegexValidator(
                 regex=r'^[\w.@+-]+\Z',
-                message='Username format error. Letters, digits and @/./+/-/_ only.',
+                message='Username format error. '
+                        'Letters, digits and @/./+/-/_ only.',
             )
         ],
     )
