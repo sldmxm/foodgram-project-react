@@ -64,9 +64,10 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 
 class RecipeIngredientsSerializer(serializers.ModelSerializer):
-    ingredient = serializers.SlugRelatedField(
+    name = serializers.SlugRelatedField(
         slug_field='name',
         queryset=Ingredient.objects.all(),
+        source='ingredient',
     )
     id = serializers.IntegerField(
         source='ingredient.id'
@@ -79,7 +80,7 @@ class RecipeIngredientsSerializer(serializers.ModelSerializer):
         model = RecipeIngredients
         fields = (
             'id',
-            'ingredient',
+            'name',
             'measurement_unit',
             'amount',
         )
@@ -89,6 +90,7 @@ class RecipeViewSerializer(serializers.ModelSerializer):
     author = UserSerializer()
     tags = TagSerializer(many=True)
     ingredients = RecipeIngredientsSerializer(many=True)
+    image = serializers.SerializerMethodField()
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
 
@@ -106,6 +108,9 @@ class RecipeViewSerializer(serializers.ModelSerializer):
             'text',
             'cooking_time',
         )
+
+    def get_image(self, obj):
+        return obj.image.url
 
     def get_is_favorited(self, obj):
         return (
@@ -220,19 +225,6 @@ class RecipeEditSerializer(RecipeViewSerializer):
         return recipe
 
     def update(self, instance, validated_data):
-        required_fields = (
-            'tags',
-            'ingredients',
-            'name',
-            'image',
-            'text',
-            'cooking_time',
-        )
-        for field in required_fields:
-            if field not in validated_data:
-                raise serializers.ValidationError(
-                    {f'{field}': ["This field is required."]}
-                )
 
         ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
@@ -268,7 +260,7 @@ class ShortRecipeSerializer(serializers.ModelSerializer):
         )
 
 
-class SubscriptionsSerializer(UserSerializer):
+class SubscriptionsViewSerializer(UserSerializer):
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
 

@@ -1,21 +1,24 @@
 from django.shortcuts import get_object_or_404
+from django.db.models import Q
 from rest_framework import (
-    viewsets, status, mixins, serializers, filters
+    viewsets, status, mixins, serializers
 )
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from djoser.views import UserViewSet
 
 from cart.views import generate_shopping_cart_pdf
 from api.pagination import LimitPagePagination
-from api.permissions import IsAuthorAdminOrReadOnly
+from api.permissions import (
+    IsAuthorAdminOrReadOnly,
+)
 from api.serializers import (
     TagSerializer,
     RecipeViewSerializer,
     RecipeEditSerializer,
     ShortRecipeSerializer,
-    SubscriptionsSerializer,
+    SubscriptionsViewSerializer,
     SubscriptionSerializer,
     IngredientSerializer,
 )
@@ -32,6 +35,7 @@ from cart.models import CartRecipes, Cart
 class UserViewSet(UserViewSet):
     pagination_class = LimitPagePagination
     http_method_names = ['get', 'post', ]
+    permission_classes = [AllowAny, ]
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -44,14 +48,14 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     pagination_class = None
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('^name',)
 
-    # не умеет __istartswith в кириллицу под SQLite, проверить под PG
-    # def get_queryset(self):
-    #     keyword = self.request.query_params.get('search', '')
-    #     queryset = Ingredient.objects.filter(name__istartswith=keyword)
-    #     return queryset
+    def get_queryset(self):
+        keyword = self.request.query_params.get('name', '')
+        queryset = Ingredient.objects.filter(
+            Q(name__istartswith=keyword) |
+            Q(name__contains=keyword)
+        )
+        return queryset
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -98,10 +102,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
         )
         if (is_in_shopping_cart is not None
                 and int(is_in_shopping_cart) == 1):
-            queryset = (
-                self.request.user.cart.recipes
-                .prefetch_related('tags', 'ingredients')
-            )
+            try:
+                queryset = (
+                    self.request.user.cart.recipes
+                    .prefetch_related('tags', 'ingredients')
+                )
+            except User.cart.RelatedObjectDoesNotExist:
+                queryset = Cart.objects.none()
 
         tags = self.request.query_params.getlist('tags')
         if tags:
@@ -155,10 +162,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
         permission_classes=[IsAuthenticated],
     )
     def shopping_cart(self, request, pk):
-        cart = get_object_or_404(Cart, user=self.request.user)
+        cart, _ = Cart.objects.get_or_create(user=self.request.user)
         already_in_cart = (
             CartRecipes.objects
-            .filter(recipe_id=pk, cart=cart)
+            .filter(recipe_id=pk, cart_id=cart.id)
             .exists()
         )
 
@@ -264,7 +271,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 class SubscriptionsListViewSet(mixins.ListModelMixin,
                                viewsets.GenericViewSet):
     queryset = User.objects.all()
-    serializer_class = SubscriptionsSerializer
+    serializer_class = SubscriptionsViewSerializer
     pagination_class = LimitPagePagination
     permission_classes = (IsAuthenticated, )
 
@@ -300,7 +307,7 @@ class SubscriptionViewSet(mixins.CreateModelMixin,
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
 
-        response_serializer = SubscriptionsSerializer(
+        response_serializer = SubscriptionsViewSerializer(
             instance=serializer.instance.author,
             context={'request': request},
         )

@@ -59,7 +59,7 @@ class Recipe(models.Model):
     )
     image = models.ImageField(
         'Recipe photo',
-        upload_to='media/recipes_photos/',
+        upload_to='recipes_photos/',
         blank=True,
     )
     tags = models.ManyToManyField(

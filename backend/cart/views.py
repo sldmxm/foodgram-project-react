@@ -11,14 +11,14 @@ def generate_pdf(title, ingredient_list, filename):
 
     buffer = io.BytesIO()
     p = canvas.Canvas(buffer, bottomup=0)
-    pdfmetrics.registerFont(TTFont('Russian', 'Courier New.ttf'))
+    pdfmetrics.registerFont(TTFont('Russian', 'RobotoMono-Regular.ttf'))
 
     p.setFont('Russian', 16)
-    p.drawString(30, 50, title.encode('utf-8'))
-    p.line(30, 55, 500, 55)
+    p.drawString(60, 50, title.encode('utf-8'))
+    p.line(60, 55, 530, 55)
 
     p.setFont('Russian', 12)
-    text_object = p.beginText(30, 80)
+    text_object = p.beginText(60, 80)
     max_line_length = 0
     for name, volume in ingredient_list:
         max_line_length = max(
