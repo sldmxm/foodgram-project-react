@@ -1,4 +1,5 @@
 import csv
+
 from django.core.management.base import BaseCommand
 
 from recipes.models import Ingredient
@@ -6,16 +7,29 @@ from recipes.models import Ingredient
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
-        with open('ingredients.csv', encoding='utf-8') as r_file:
-            reader = csv.reader(r_file, delimiter=",")
-            next(reader)
-            upload_list = []
-            for row in reader:
-                if not Ingredient.objects.filter(
-                        name=row[0], measurement_unit=row[1]).exists():
-                    upload_list.append(
-                        Ingredient(name=row[0], measurement_unit=row[1])
-                    )
-            Ingredient.objects.bulk_create(upload_list)
-            print(f'Загружено {len(upload_list)} '
-                  f'записей в Ingredient.')
+        try:
+            r_file = open('ingredients.csv', encoding='utf-8')
+        except IOError as e:
+            self.stdout.write(self.style.ERROR(e))
+        else:
+            upload_list = {}
+            with r_file:
+                data = csv.DictReader(r_file, fieldnames=['name', 'unit'])
+                for row in data:
+                    if not Ingredient.objects.filter(
+                            name=row['name'],
+                            measurement_unit=row['unit']
+                    ).exists():
+                        upload_list[str(
+                            Ingredient(name=row['name'], measurement_unit=row['unit'])
+                        )] = Ingredient(name=row['name'], measurement_unit=row['unit'])
+
+                Ingredient.objects.bulk_create(upload_list.values())
+                if len(upload_list) > 0:
+                    self.stdout.write(self.style.SUCCESS(
+                        f'Загружено {len(upload_list)} новых записей в Ingredient.'
+                    ))
+                else:
+                    self.stdout.write(self.style.WARNING(
+                        f'Нет новых записей для Ingredient.'
+                    ))

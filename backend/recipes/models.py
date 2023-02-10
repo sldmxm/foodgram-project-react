@@ -1,12 +1,8 @@
 from django.db import models
-from django.core.validators import RegexValidator, ValidationError
+from django.core.validators import RegexValidator, MinValueValidator
 
+from backend import settings
 from users.models import User
-
-
-def validate_more_or_equal_one(value):
-    if value < 1:
-        raise ValidationError('Not more or equal one')
 
 
 class Tag(models.Model):
@@ -29,8 +25,8 @@ class Tag(models.Model):
         unique=True,
         validators=[
             RegexValidator(
-                regex=r'^#[0-9a-fA-F]{6}$',
-                message='Color format error (#AABBCC)',
+                regex=r'^#(?:[0-9a-fA-F]{3}){1,2}$',
+                message='Color format error (#AABBCC or #ABC)',
             )
         ],
     )
@@ -43,7 +39,6 @@ class Recipe(models.Model):
     name = models.CharField(
         'Recipe name',
         max_length=200,
-        blank=False,
         db_index=True,
     )
     text = models.TextField(
@@ -65,18 +60,20 @@ class Recipe(models.Model):
     tags = models.ManyToManyField(
         Tag,
         blank=True,
-        through='RecipesTags',
+        related_name='recipes',
     )
     cooking_time = models.IntegerField(
         'cooking time',
         null=True,
-        validators=[validate_more_or_equal_one]
+        validators=[MinValueValidator(
+            limit_value=1,
+            message='One minute or more'
+        )]
     )
     favorite = models.ManyToManyField(
         User,
         related_name='favorite_recipes',
         blank=True,
-        through='FavoriteRecipes',
     )
     pub_date = models.DateTimeField(
         auto_now_add=True,
@@ -93,39 +90,10 @@ class Recipe(models.Model):
         ordering = ('-pub_date',)
 
 
-class RecipesTags(models.Model):
-    tag = models.ForeignKey(
-        Tag,
-        on_delete=models.CASCADE,
-        null=False,
-        related_name='recipes',
-    )
-    recipe = models.ForeignKey(
-        Recipe,
-        on_delete=models.CASCADE,
-        null=False,
-        related_name='recipe_tags',
-    )
-
-
-class FavoriteRecipes(models.Model):
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        null=False,
-    )
-    recipe = models.ForeignKey(
-        Recipe,
-        on_delete=models.CASCADE,
-        null=False,
-        related_name='fans',
-    )
-
-
 class Ingredient(models.Model):
     name = models.CharField(
         'Ingredient name',
-        max_length=150,
+        max_length=settings.STANDARD_MAX_CHAR_FIELD_LENGTH,
         db_index=True,
     )
     measurement_unit = models.CharField(
@@ -147,7 +115,6 @@ class RecipeIngredients(models.Model):
         verbose_name='Ingredient with measurement unit',
         on_delete=models.CASCADE,
         null=False,
-        related_name='recipes',
     )
     recipe = models.ForeignKey(
         Recipe,
@@ -157,3 +124,21 @@ class RecipeIngredients(models.Model):
         related_name='ingredients',
     )
     amount = models.IntegerField('amount of ingredient')
+
+
+class Cart(models.Model):
+    user = models.OneToOneField(
+        User,
+        verbose_name='Cart owner',
+        on_delete=models.CASCADE,
+        related_name='cart',
+    )
+    recipes = models.ManyToManyField(
+        Recipe,
+        verbose_name='Recipef'
+                     's in cart',
+    )
+
+    def recipes_in_cart_count(self):
+        return self.recipes.count()
+

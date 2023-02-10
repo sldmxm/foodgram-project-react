@@ -1,36 +1,40 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
+from django.contrib.auth.validators import ASCIIUsernameValidator
+
+from backend import settings
+from users.validators import validate_username_in_reserved_list
 
 
 class User(AbstractUser):
-
     username = models.CharField(
-        max_length=150,
+        max_length=settings.STANDARD_MAX_CHAR_FIELD_LENGTH,
         unique=True,
         verbose_name='User name',
         validators=[
+            validate_username_in_reserved_list,
+            # Если я правильно понимаю, требования в документации по API (^[\w.@+-]+\z)
+            # жестче стандартного UnicodeUsernameValidator
             RegexValidator(
                 regex=r'^[\w.@+-]+\Z',
                 message='Username format error. '
                         'Letters, digits and @/./+/-/_ only.',
             )
+
         ],
     )
     email = models.EmailField(
-        blank=False,
         unique=True,
         max_length=254,
         verbose_name='Email address',
     )
     first_name = models.CharField(
-        max_length=150,
-        blank=False,
+        max_length=settings.STANDARD_MAX_CHAR_FIELD_LENGTH,
         verbose_name='First name',
     )
     last_name = models.CharField(
-        max_length=150,
-        blank=False,
+        max_length=settings.STANDARD_MAX_CHAR_FIELD_LENGTH,
         verbose_name='Last name',
     )
 

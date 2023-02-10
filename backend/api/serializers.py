@@ -11,7 +11,6 @@ from recipes.models import (
     Recipe,
     RecipeIngredients,
     Ingredient,
-    RecipesTags,
 )
 from users.models import User, Follow
 from api.validators import DoubleValidator
@@ -196,6 +195,11 @@ class RecipeEditSerializer(RecipeViewSerializer):
             'cooking_time',
         )
 
+    def validate_cooking_time(self, value):
+        if value < 1:
+            raise serializers.ValidationError('One minute or more')
+        return value
+
     def ingredients_and_tags_add(self, recipe, ingredients, tags):
         for ingredient in ingredients:
             RecipeIngredients.objects.create(
@@ -207,10 +211,7 @@ class RecipeEditSerializer(RecipeViewSerializer):
             )
 
         for tag in tags:
-            RecipesTags.objects.create(
-                tag=Tag.objects.get(id=tag.id),
-                recipe=Recipe.objects.get(id=recipe.id),
-            )
+            recipe.tags.add(tag)
 
     def create(self, validated_data):
         ingredients = validated_data.pop('ingredients')
@@ -232,9 +233,9 @@ class RecipeEditSerializer(RecipeViewSerializer):
         RecipeIngredients.objects.filter(
             recipe_id=instance.id
         ).delete()
-        RecipesTags.objects.filter(
-            recipe_id=instance.id
-        ).delete()
+
+        for tag in instance.tags.all():
+            instance.tags.remove(tag)
 
         self.ingredients_and_tags_add(
             recipe=instance,

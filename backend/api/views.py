@@ -1,5 +1,11 @@
+import io
+
+from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfgen import canvas
 from rest_framework import (
     viewsets, status, mixins, serializers
 )
@@ -8,7 +14,6 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from djoser.views import UserViewSet
 
-from cart.views import generate_shopping_cart_pdf
 from api.pagination import LimitPagePagination
 from api.permissions import (
     IsAuthorAdminOrReadOnly,
@@ -25,11 +30,10 @@ from api.serializers import (
 from recipes.models import (
     Tag,
     Recipe,
-    FavoriteRecipes,
-    Ingredient
+    Ingredient,
+    Cart,
 )
 from users.models import User, Follow
-from cart.models import CartRecipes, Cart
 
 
 class UserViewSet(UserViewSet):
@@ -156,30 +160,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
         )
         return Response(response_serializer.data)
 
-    @action(
-        methods=['post', 'delete'],
-        detail=True,
-        permission_classes=[IsAuthenticated],
-    )
-    def shopping_cart(self, request, pk):
-        cart, _ = Cart.objects.get_or_create(user=self.request.user)
-        already_in_cart = (
-            CartRecipes.objects
-            .filter(recipe_id=pk, cart_id=cart.id)
-            .exists()
-        )
+    def edit_cart_or_favorite(self, request, recipe_id, obj):
+        recipe = get_object_or_404(Recipe, pk=recipe_id)
 
         if request.method == 'POST':
-            if already_in_cart:
-                raise serializers.ValidationError(
-                    {"errors": "This recipe is already in the shopping cart"}
-                )
-            recipe = get_object_or_404(Recipe, pk=pk)
-            CartRecipes.objects.create(
-                recipe=recipe,
-                cart=cart,
-            )
-
+            obj.add(recipe)
             return Response(
                 ShortRecipeSerializer(
                     instance=recipe,
@@ -188,20 +173,26 @@ class RecipeViewSet(viewsets.ModelViewSet):
             )
 
         if request.method == 'DELETE':
-            if not already_in_cart:
-                raise serializers.ValidationError(
-                    {"errors": "This recipe is not in the shopping cart"}
-                )
-            CartRecipes.objects.filter(
-                recipe_id=pk,
-                cart=cart,
-            ).delete()
+            obj.remove(recipe)
             return Response(
                 {},
                 status=status.HTTP_200_OK,
             )
         raise serializers.ValidationError(
             {"errors": "Something went wrong"}
+        )
+
+    @action(
+        methods=['post', 'delete'],
+        detail=True,
+        permission_classes=[IsAuthenticated],
+    )
+    def shopping_cart(self, request, pk):
+        cart, _ = Cart.objects.get_or_create(user=self.request.user)
+        return self.edit_cart_or_favorite(
+            request=request,
+            recipe_id=pk,
+            obj=cart.recipes,
         )
 
     @action(
@@ -211,51 +202,16 @@ class RecipeViewSet(viewsets.ModelViewSet):
     )
     def favorite(self, request, pk):
         user = get_object_or_404(User, pk=self.request.user.pk)
-        favorite_already = (
-            FavoriteRecipes.objects
-            .filter(recipe_id=pk, user=user)
-            .exists()
-        )
-
-        if request.method == 'POST':
-            if favorite_already:
-                raise serializers.ValidationError(
-                    {"errors": "This recipe is favorite already"}
-                )
-            recipe = get_object_or_404(Recipe, pk=pk)
-            FavoriteRecipes.objects.create(
-                recipe=recipe,
-                user=user,
-            )
-
-            return Response(
-                ShortRecipeSerializer(
-                    instance=recipe,
-                ).data,
-                status=status.HTTP_201_CREATED,
-            )
-
-        if request.method == 'DELETE':
-            if not favorite_already:
-                raise serializers.ValidationError(
-                    {"errors": "This recipe is not favorite"}
-                )
-            FavoriteRecipes.objects.filter(
-                recipe_id=pk,
-                user=user,
-            ).delete()
-            return Response(
-                {},
-                status=status.HTTP_200_OK,
-            )
-        raise serializers.ValidationError(
-            {"errors": "Something went wrong"}
+        return self.edit_cart_or_favorite(
+            request=request,
+            recipe_id=pk,
+            obj=user.favorite_recipes,
         )
 
     @action(
         methods=['get'],
         detail=False,
-        permission_classes=[IsAuthenticated],  # не работает
+        permission_classes=[IsAuthenticated],
     )
     def download_shopping_cart(self, request):
         if self.request.user.is_authenticated:
@@ -320,3 +276,57 @@ class SubscriptionViewSet(mixins.CreateModelMixin,
 
     def delete(self, request, *args, **kwargs):
         return self.destroy(request, *args, **kwargs)
+
+
+def generate_pdf(title, ingredient_list, filename):
+    MIN_ADDITION_SPACES = 3
+
+    buffer = io.BytesIO()
+    p = canvas.Canvas(buffer, bottomup=0)
+    pdfmetrics.registerFont(TTFont('Russian', 'RobotoMono-Regular.ttf'))
+
+    p.setFont('Russian', 16)
+    p.drawString(60, 50, title.encode('utf-8'))
+    p.line(60, 55, 530, 55)
+
+    p.setFont('Russian', 12)
+    text_object = p.beginText(60, 80)
+    max_line_length = 0
+    for name, volume in ingredient_list:
+        max_line_length = max(
+            max_line_length,
+            len(f'{name}{volume}') + MIN_ADDITION_SPACES
+        )
+    for name, volume in ingredient_list:
+        additional_spaces = max_line_length - len(f'{name}{volume}')
+        text_object.textLine(
+            f'{chr(2610)} {name}:{"_" * additional_spaces}{volume}'
+            .encode('utf-8')
+        )
+    p.drawText(text_object)
+
+    p.showPage()
+    p.save()
+    buffer.seek(0)
+    return FileResponse(buffer, as_attachment=True, filename=filename)
+
+
+def generate_ingredient_list(user):
+    recipes = user.cart.recipes.all()
+
+    ingredient_list = {}
+    for recipe in recipes:
+        for ingredient in recipe.ingredients.select_related('ingredient'):
+            ingredient_list[str(ingredient.ingredient)] = (
+                ingredient_list.get(str(ingredient.ingredient), 0)
+                + ingredient.amount)
+
+    return sorted(ingredient_list.items())
+
+
+def generate_shopping_cart_pdf(user):
+    return generate_pdf(
+        title=f"{user.first_name}'s shopping cart",
+        ingredient_list=generate_ingredient_list(user),
+        filename='shopping_cart.pdf'
+    )
