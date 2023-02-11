@@ -13,8 +13,8 @@ class User(AbstractUser):
         verbose_name='User name',
         validators=[
             validate_username_in_reserved_list,
-            UnicodeUsernameValidator,
-        ],
+            UnicodeUsernameValidator(),
+        ]
     )
     email = models.EmailField(
         unique=True,

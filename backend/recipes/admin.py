@@ -25,7 +25,11 @@ class RecipeAdmin(admin.ModelAdmin):
         'favorite_count',
     )
     search_fields = ('name', )
-    list_filter = ('author', 'name', 'tags', )
+    list_filter = (
+        'author',
+        'name',
+        'tags',
+    )
     empty_value_display = 'n/a'
     list_editable = ('author', )
     readonly_fields = ('favorite_count',)

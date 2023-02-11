@@ -1,13 +1,10 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from .forms import UserCreationForm, UserChangeForm
 from .models import User, Follow
 
 
 class UserAdmin(UserAdmin):
-    add_form = UserCreationForm
-    form = UserChangeForm
     model = User
     list_display = (
             'username',
@@ -19,9 +16,17 @@ class UserAdmin(UserAdmin):
         'username',
         'email',
     )
-    search_fields = ('username', 'first_name', 'last_name', 'email')
-    filter = (
-
+    search_fields = (
+        'username',
+        'first_name',
+        'last_name',
+        'email',
+    )
+    fields = (
+        'username',
+        'email',
+        'first_name',
+        'last_name',
     )
 
 
