@@ -14,22 +14,39 @@ class Command(BaseCommand):
         else:
             upload_list = {}
             with r_file:
-                data = csv.DictReader(r_file, fieldnames=['name', 'unit'])
+                data = csv.DictReader(
+                    r_file,
+                    fieldnames=['name', 'unit']
+                )
                 for row in data:
+                    # идея была - не загружать дубли,
+                    # а не только избегать ошибки в случае их появления
+                    # поэтому проверку оставил
+
                     if not Ingredient.objects.filter(
                             name=row['name'],
                             measurement_unit=row['unit']
                     ).exists():
                         upload_list[str(
-                            Ingredient(name=row['name'], measurement_unit=row['unit'])
-                        )] = Ingredient(name=row['name'], measurement_unit=row['unit'])
+                            Ingredient(
+                                name=row['name'],
+                                measurement_unit=row['unit']
+                            )
+                        )] = Ingredient(
+                            name=row['name'],
+                            measurement_unit=row['unit']
+                        )
 
-                Ingredient.objects.bulk_create(upload_list.values())
+                Ingredient.objects.bulk_create(
+                    upload_list.values(),
+                    ignore_conflicts=True,
+                )
                 if len(upload_list) > 0:
                     self.stdout.write(self.style.SUCCESS(
-                        f'Загружено {len(upload_list)} новых записей в Ingredient.'
+                        f'Загружено {len(upload_list)} '
+                        f'новых записей в Ingredient.'
                     ))
                 else:
                     self.stdout.write(self.style.WARNING(
-                        f'Нет новых записей для Ingredient.'
+                        'Нет новых записей для Ingredient.'
                     ))

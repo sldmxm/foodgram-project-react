@@ -125,6 +125,8 @@ DJOSER = {
     'HIDE_USERS': False,
     'PERMISSIONS': {
         'user_list': ['rest_framework.permissions.AllowAny'],
+        'user': ['api.permissions.ReadOnly'],
+
     },
     'SERIALIZERS': {
         'user': 'api.serializers.UserSerializer',
@@ -139,7 +141,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
     ],
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'DEFAULT_PAGINATION_CLASS': 'api.pagination.LimitPagePagination',
     'PAGE_SIZE': 5,
 }
 
@@ -168,3 +170,4 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 STANDARD_MAX_CHAR_FIELD_LENGTH = 150
+EMAIL_MAX_CHAR_FIELD_LENGTH = 254

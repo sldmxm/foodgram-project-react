@@ -1,9 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from django.core.validators import RegexValidator
-from django.contrib.auth.validators import ASCIIUsernameValidator
+from django.contrib.auth.validators import UnicodeUsernameValidator
 
-from backend import settings
+from django.conf import settings
 from users.validators import validate_username_in_reserved_list
 
 
@@ -14,19 +13,12 @@ class User(AbstractUser):
         verbose_name='User name',
         validators=[
             validate_username_in_reserved_list,
-            # Если я правильно понимаю, требования в документации по API (^[\w.@+-]+\z)
-            # жестче стандартного UnicodeUsernameValidator
-            RegexValidator(
-                regex=r'^[\w.@+-]+\Z',
-                message='Username format error. '
-                        'Letters, digits and @/./+/-/_ only.',
-            )
-
+            UnicodeUsernameValidator,
         ],
     )
     email = models.EmailField(
         unique=True,
-        max_length=254,
+        max_length=settings.EMAIL_MAX_CHAR_FIELD_LENGTH,
         verbose_name='Email address',
     )
     first_name = models.CharField(

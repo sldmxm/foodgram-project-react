@@ -1,7 +1,7 @@
 from django.db import models
 from django.core.validators import RegexValidator, MinValueValidator
 
-from backend import settings
+from django.conf import settings
 from users.models import User
 
 
@@ -25,7 +25,7 @@ class Tag(models.Model):
         unique=True,
         validators=[
             RegexValidator(
-                regex=r'^#(?:[0-9a-fA-F]{3}){1,2}$',
+                regex=r'^#(0-9a-fA-F]{3,6}$',
                 message='Color format error (#AABBCC or #ABC)',
             )
         ],
@@ -62,7 +62,7 @@ class Recipe(models.Model):
         blank=True,
         related_name='recipes',
     )
-    cooking_time = models.IntegerField(
+    cooking_time = models.PositiveSmallIntegerField(
         'cooking time',
         null=True,
         validators=[MinValueValidator(
@@ -123,7 +123,9 @@ class RecipeIngredients(models.Model):
         null=False,
         related_name='ingredients',
     )
-    amount = models.IntegerField('amount of ingredient')
+    amount = models.PositiveSmallIntegerField(
+        'amount of ingredient',
+    )
 
 
 class Cart(models.Model):
@@ -135,10 +137,8 @@ class Cart(models.Model):
     )
     recipes = models.ManyToManyField(
         Recipe,
-        verbose_name='Recipef'
-                     's in cart',
+        verbose_name='Recipes in cart',
     )
 
     def recipes_in_cart_count(self):
         return self.recipes.count()
-

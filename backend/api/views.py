@@ -10,11 +10,9 @@ from rest_framework import (
     viewsets, status, mixins, serializers
 )
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from djoser.views import UserViewSet
 
-from api.pagination import LimitPagePagination
 from api.permissions import (
     IsAuthorAdminOrReadOnly,
 )
@@ -34,12 +32,6 @@ from recipes.models import (
     Cart,
 )
 from users.models import User, Follow
-
-
-class UserViewSet(UserViewSet):
-    pagination_class = LimitPagePagination
-    http_method_names = ['get', 'post', ]
-    permission_classes = [AllowAny, ]
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -66,7 +58,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeViewSerializer
     http_method_names = ['get', 'post', 'patch', 'delete', ]
-    pagination_class = LimitPagePagination
 
     def get_permissions(self):
         if self.action == ('list', 'retrieve', 'create'):
@@ -228,7 +219,6 @@ class SubscriptionsListViewSet(mixins.ListModelMixin,
                                viewsets.GenericViewSet):
     queryset = User.objects.all()
     serializer_class = SubscriptionsViewSerializer
-    pagination_class = LimitPagePagination
     permission_classes = (IsAuthenticated, )
 
     def get_queryset(self):

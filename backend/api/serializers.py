@@ -89,7 +89,6 @@ class RecipeViewSerializer(serializers.ModelSerializer):
     author = UserSerializer()
     tags = TagSerializer(many=True)
     ingredients = RecipeIngredientsSerializer(many=True)
-    image = serializers.SerializerMethodField()
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
 
@@ -107,9 +106,6 @@ class RecipeViewSerializer(serializers.ModelSerializer):
             'text',
             'cooking_time',
         )
-
-    def get_image(self, obj):
-        return obj.image.url
 
     def get_is_favorited(self, obj):
         return (
