@@ -1,7 +1,7 @@
 from django.db import models
 from django.core.validators import RegexValidator, MinValueValidator
-
 from django.conf import settings
+
 from users.models import User
 
 
@@ -67,9 +67,15 @@ class Recipe(models.Model):
         null=True,
         validators=[MinValueValidator(
             limit_value=1,
-            message='One minute or more'
         )]
     )
+    # Здесь логика такая:
+    # Users - отдельное самостоятельное приложение,
+    # которое умеет в пользователей и подписки.
+    # Если его на уровне модели связать с этим
+    # узкоспециализированным приложением, то оно
+    # перестанет быть самодостаточным.
+    # Если логика такая себе, уже исправлю без вопросов )
     favorite = models.ManyToManyField(
         User,
         related_name='favorite_recipes',
@@ -115,6 +121,7 @@ class RecipeIngredients(models.Model):
         verbose_name='Ingredient with measurement unit',
         on_delete=models.CASCADE,
         null=False,
+        related_name='+',
     )
     recipe = models.ForeignKey(
         Recipe,
@@ -125,6 +132,9 @@ class RecipeIngredients(models.Model):
     )
     amount = models.PositiveSmallIntegerField(
         'amount of ingredient',
+        validators=[MinValueValidator(
+            limit_value=1,
+        )]
     )
 
 
@@ -138,6 +148,7 @@ class Cart(models.Model):
     recipes = models.ManyToManyField(
         Recipe,
         verbose_name='Recipes in cart',
+        related_name='+',
     )
 
     def recipes_in_cart_count(self):

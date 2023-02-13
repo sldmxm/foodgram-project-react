@@ -1,10 +1,7 @@
-import base64
-
-from django.core.files.base import ContentFile
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
-from djoser.serializers import UserSerializer
+from drf_extra_fields.fields import Base64ImageField
 
 from recipes.models import (
     Tag,
@@ -16,7 +13,7 @@ from users.models import User, Follow
 from api.validators import DoubleValidator
 
 
-class UserSerializer(UserSerializer):
+class UserSerializer(serializers.ModelSerializer):
     is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
@@ -129,18 +126,6 @@ class RecipeViewSerializer(serializers.ModelSerializer):
             return False
 
 
-class Base64ImageField(serializers.ImageField):
-    def to_internal_value(self, data):
-        if isinstance(data, str) and data.startswith('data:image'):
-            file_type, file_data_base64 = data.split(';base64,')
-            ext = file_type.split('/')[-1]
-            data = ContentFile(
-                base64.b64decode(file_data_base64),
-                name='temp.' + ext
-            )
-        return super().to_internal_value(data)
-
-
 class RecipeEditIngredientsSerializer(RecipeIngredientsSerializer):
     class Meta:
         model = RecipeIngredients
@@ -167,15 +152,6 @@ class RecipeEditSerializer(RecipeViewSerializer):
     )
     ingredients = RecipeEditIngredientsSerializer(
         many=True,
-        required=True,
-    )
-    name = serializers.CharField(
-        required=True,
-    )
-    text = serializers.CharField(
-        required=True,
-    )
-    cooking_time = serializers.IntegerField(
         required=True,
     )
 

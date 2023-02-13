@@ -1,8 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.validators import UnicodeUsernameValidator
-
 from django.conf import settings
+
 from users.validators import validate_username_in_reserved_list
 
 
@@ -24,10 +24,16 @@ class User(AbstractUser):
     first_name = models.CharField(
         max_length=settings.STANDARD_MAX_CHAR_FIELD_LENGTH,
         verbose_name='First name',
+        validators=[
+            UnicodeUsernameValidator(),
+        ]
     )
     last_name = models.CharField(
         max_length=settings.STANDARD_MAX_CHAR_FIELD_LENGTH,
         verbose_name='Last name',
+        validators=[
+            UnicodeUsernameValidator(),
+        ]
     )
 
     REQUIRED_FIELDS = [
