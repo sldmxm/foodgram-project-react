@@ -1,5 +1,10 @@
 from django.db import models
-from django.core.validators import RegexValidator, MinValueValidator
+from django.core.validators import (
+    RegexValidator,
+    MinValueValidator,
+    MaxValueValidator,
+)
+
 from django.conf import settings
 
 from users.models import User
@@ -30,6 +35,9 @@ class Tag(models.Model):
             )
         ],
     )
+
+    class Meta:
+        ordering = ('name',)
 
     def __str__(self):
         return self.name
@@ -65,9 +73,10 @@ class Recipe(models.Model):
     cooking_time = models.PositiveSmallIntegerField(
         'cooking time',
         null=True,
-        validators=[MinValueValidator(
-            limit_value=1,
-        )]
+        validators=[
+            MinValueValidator(limit_value=1),
+            MaxValueValidator(limit_value=60*24),
+        ]
     )
     # Здесь логика такая:
     # Users - отдельное самостоятельное приложение,
@@ -86,14 +95,14 @@ class Recipe(models.Model):
         verbose_name='Publish date',
     )
 
+    class Meta:
+        ordering = ('-pub_date',)
+
     def __str__(self):
         return self.name
 
     def favorite_count(self):
         return self.favorite.count()
-
-    class Meta:
-        ordering = ('-pub_date',)
 
 
 class Ingredient(models.Model):
@@ -108,11 +117,11 @@ class Ingredient(models.Model):
         null=False,
     )
 
-    def __str__(self):
-        return f'{self.name} ({self.measurement_unit})'
-
     class Meta:
         ordering = ('name',)
+
+    def __str__(self):
+        return f'{self.name} ({self.measurement_unit})'
 
 
 class RecipeIngredients(models.Model):
@@ -132,10 +141,14 @@ class RecipeIngredients(models.Model):
     )
     amount = models.PositiveSmallIntegerField(
         'amount of ingredient',
-        validators=[MinValueValidator(
-            limit_value=1,
-        )]
+        validators=[
+            MinValueValidator(limit_value=1),
+            MaxValueValidator(limit_value=10000),
+        ]
     )
+
+    class Meta:
+        ordering = ('ingredient__name',)
 
 
 class Cart(models.Model):
@@ -150,6 +163,9 @@ class Cart(models.Model):
         verbose_name='Recipes in cart',
         related_name='+',
     )
+
+    class Meta:
+        ordering = ('recipes__name',)
 
     def recipes_in_cart_count(self):
         return self.recipes.count()

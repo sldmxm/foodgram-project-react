@@ -19,10 +19,6 @@ class Command(BaseCommand):
                     fieldnames=['name', 'unit']
                 )
                 for row in data:
-                    # идея была - не загружать дубли,
-                    # а не только избегать ошибки в случае их появления
-                    # поэтому проверку оставил
-
                     if not Ingredient.objects.filter(
                             name=row['name'],
                             measurement_unit=row['unit']

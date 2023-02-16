@@ -173,14 +173,21 @@ class RecipeEditSerializer(RecipeViewSerializer):
         return value
 
     def ingredients_and_tags_add(self, recipe, ingredients, tags):
+        ingredients_update = []
         for ingredient in ingredients:
-            RecipeIngredients.objects.create(
-                ingredient=Ingredient.objects.get(
-                    id=ingredient['ingredient']['id']
-                ),
-                amount=ingredient['amount'],
-                recipe=Recipe.objects.get(id=recipe.id),
+            ingredients_update.append(
+                RecipeIngredients(
+                    ingredient=Ingredient.objects.get(
+                        id=ingredient['ingredient']['id']
+                    ),
+                    amount=ingredient['amount'],
+                    recipe=Recipe.objects.get(id=recipe.id),
+                )
             )
+        RecipeIngredients.objects.bulk_create(
+            ingredients_update,
+            ignore_conflicts=True,
+        )
 
         for tag in tags:
             recipe.tags.add(tag)
