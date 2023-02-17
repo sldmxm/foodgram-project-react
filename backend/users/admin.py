@@ -42,4 +42,4 @@ class FollowAdmin(admin.ModelAdmin):
     list_editable = ('author', 'follower', )
 
 
-admin.site.register(User, UserAdmin)
+admin.site.register(User, )

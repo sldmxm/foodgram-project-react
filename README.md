@@ -40,6 +40,7 @@ docker-compose up -d --build
 ```
 Осталось выполнить миграции, создать администратора, выгрузить статику, установить шрифт
 ```
+docker-compose exec web python manage.py makemigrations
 docker-compose exec backend python manage.py migrate
 docker-compose exec backend python manage.py createsuperuser
 docker-compose exec backend python manage.py collectstatic --no-input 
