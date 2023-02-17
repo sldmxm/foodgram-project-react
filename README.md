@@ -38,16 +38,11 @@ SECRET_KEY=xxxxxxxxxxxxxxxx
 ```
 docker-compose up -d --build 
 ```
-Осталось выполнить миграции, создать администратора, выгрузить статику, установить шрифт
+Осталось выполнить миграции, создать администратора, выгрузить статику
 ```
-docker-compose exec web python manage.py makemigrations
 docker-compose exec backend python manage.py migrate
 docker-compose exec backend python manage.py createsuperuser
 docker-compose exec backend python manage.py collectstatic --no-input 
-docker-compose exec backend cp ./static/RobotoMono-Regular.ttf ./
-docker-compose exec backend mkdir -p /usr/share/fonts/truetype/
-docker-compose exec backend install -m644 RobotoMono-Regular.ttf /usr/share/fonts/truetype/
-docker-compose exec backend rm ./RobotoMono-Regular.ttf
 ```
 Теперь проект готов к работе, фронтенд на http://localhost/
 Доступ к API http://localhost/api/, к админке: http://localhost/admin
