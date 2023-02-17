@@ -69,5 +69,6 @@ docker-compose exec backend python manage.py import_ingredients
 
 ### Размещение
 http://solmax.hopto.org/
-u: admin
+u: admin 
+e: 1@1.com
 p: ghbvfghbvf
