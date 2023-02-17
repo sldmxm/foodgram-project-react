@@ -22,12 +22,6 @@ class UserAdmin(UserAdmin):
         'last_name',
         'email',
     )
-    fields = (
-        'username',
-        'email',
-        'first_name',
-        'last_name',
-    )
 
 
 @admin.register(Follow)
@@ -42,4 +36,4 @@ class FollowAdmin(admin.ModelAdmin):
     list_editable = ('author', 'follower', )
 
 
-admin.site.register(User, )
+admin.site.register(User, UserAdmin)
