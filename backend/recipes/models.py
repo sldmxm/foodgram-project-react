@@ -30,7 +30,7 @@ class Tag(models.Model):
         unique=True,
         validators=[
             RegexValidator(
-                regex=r'^#(0-9a-fA-F]{3,6}$',
+                regex=r'^#(0-9a-fA-F){3,6}$',
                 message='Color format error (#AABBCC or #ABC)',
             )
         ],
