@@ -68,6 +68,6 @@ docker-compose exec backend python manage.py import_ingredients
 - nginx v.1.19.3
 
 ### Размещение
-______
+http://solmax.hopto.org/
 u: admin
 p: ghbvfghbvf
