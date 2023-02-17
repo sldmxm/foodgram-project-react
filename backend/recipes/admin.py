@@ -63,7 +63,6 @@ class IngredientAdmin(admin.ModelAdmin):
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
-    model = Tag
     list_display = (
         'name',
         'slug',
@@ -75,7 +74,6 @@ class TagAdmin(admin.ModelAdmin):
 
 @admin.register(Cart)
 class CartAdmin(admin.ModelAdmin):
-    model = Cart
     list_display = (
         'user',
         'recipes_in_cart_count'
