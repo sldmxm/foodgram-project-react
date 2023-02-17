@@ -34,11 +34,11 @@ DB_PORT=5432
 # Перенесите SECRET_KEY из settings.py бекенда 
 SECRET_KEY=xxxxxxxxxxxxxxxx 
 ```
-Для запуска приложения локально в контейнерах перейдите в директорию "infra" и выполните:
+Для запуска приложения локально в контейнерах перейдите в директорию "infra":
 ```
 docker-compose up -d --build 
 ```
-Осталось выполнить миграции, создать администратора, выгрузить статику
+Осталось выполнить миграции, создать администратора, выгрузить статику:
 ```
 docker-compose exec backend python manage.py migrate
 docker-compose exec backend python manage.py createsuperuser
