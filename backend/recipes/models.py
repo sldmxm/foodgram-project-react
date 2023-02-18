@@ -51,28 +51,23 @@ class Recipe(models.Model):
     )
     text = models.TextField(
         'Recipe description',
-        blank=True
     )
     author = models.ForeignKey(
         User,
         verbose_name='Recipe author',
         on_delete=models.CASCADE,
-        null=False,
         related_name='recipes',
     )
     image = models.ImageField(
         'Recipe photo',
         upload_to='recipes_photos/',
-        blank=True,
     )
     tags = models.ManyToManyField(
         Tag,
-        blank=True,
         related_name='recipes',
     )
     cooking_time = models.PositiveSmallIntegerField(
         'cooking time',
-        null=True,
         validators=[
             MinValueValidator(limit_value=1),
             MaxValueValidator(limit_value=60*24),

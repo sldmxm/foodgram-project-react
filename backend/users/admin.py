@@ -7,11 +7,11 @@ from .models import User, Follow
 class UserAdmin(UserAdmin):
     model = User
     list_display = (
-            'username',
-            'email',
-            'first_name',
-            'last_name',
-        )
+        'username',
+        'email',
+        'first_name',
+        'last_name',
+    )
     list_filter = (
         'username',
         'email',
@@ -22,6 +22,21 @@ class UserAdmin(UserAdmin):
         'last_name',
         'email',
     )
+    add_fieldsets = (
+        (None,
+         {
+             'fields':
+             (
+                 'email',
+                 'password1',
+                 'password2',
+                 'username',
+                 'first_name',
+                 'last_name',
+             ),
+         }
+         ),
+    )
 
 
 @admin.register(Follow)
@@ -31,9 +46,9 @@ class FollowAdmin(admin.ModelAdmin):
         'follower',
         'author'
     )
-    search_fields = ('follower', 'author', )
-    list_filter = ('author', 'follower', )
-    list_editable = ('author', 'follower', )
+    search_fields = ('follower', 'author',)
+    list_filter = ('author', 'follower',)
+    list_editable = ('author', 'follower',)
 
 
 admin.site.register(User, UserAdmin)

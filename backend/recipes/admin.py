@@ -32,7 +32,9 @@ class RecipeAdmin(admin.ModelAdmin):
         'tags',
     )
     empty_value_display = 'n/a'
-    list_editable = ('author', )
+    list_editable = (
+        'author',
+    )
     readonly_fields = ('favorite_count',)
     fields = (
         ('name',

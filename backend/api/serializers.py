@@ -144,15 +144,13 @@ class RecipeEditSerializer(RecipeViewSerializer):
         slug_field='id',
         queryset=Tag.objects.all(),
         many=True,
-        required=True,
     )
     image = Base64ImageField(
-        required=True,
-        allow_null=True,
+        allow_null=False,
+        allow_empty_file=False,
     )
     ingredients = RecipeEditIngredientsSerializer(
         many=True,
-        required=True,
     )
 
     class Meta:
@@ -166,6 +164,13 @@ class RecipeEditSerializer(RecipeViewSerializer):
             'text',
             'cooking_time',
         )
+
+    # нет идей, почему не работает
+    # allow_null=False, allow_empty_file=False
+    def validate_image(self, value):
+        if not value:
+            raise serializers.ValidationError('This field may not be blank.')
+        return value
 
     def validate_cooking_time(self, value):
         if value < 1:
