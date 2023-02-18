@@ -4,7 +4,7 @@ COPY requirements.txt .
 RUN pip3 install -r requirements.txt --no-cache-dir
 COPY . .
 
-RUN sudo apt install fonts-roboto
+RUN apt install fonts-roboto
 # при разворачивании локально, можно раскаментить, шрифт поставится автоматом
 #COPY ./static/RobotoMono-Regular.ttf ./
 #RUN mkdir -p /usr/share/fonts/truetype/
