@@ -66,9 +66,3 @@ docker-compose exec backend python manage.py import_ingredients
 - Docker 
 - gunicorn v.20.1.0
 - nginx v.1.19.3
-
-### Размещение
-http://solmax.hopto.org/
-u: admin 
-e: 1@1.com
-p: ghbvfghbvf
