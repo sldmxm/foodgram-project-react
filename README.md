@@ -1,18 +1,32 @@
-## Сервис Foodgram
+# Сервис для соцсети обмена рецептами
+Проект состоит из фронтэнда на JS и бекэнда на Python. 
+Написан по документации API и техническому задинию к готовому фронту.
+Настроен CI/CD с тестами, деплоем и запуском в контейнерах на удаленном сервере.
+Сервис выполнен в рамках курса ["Python-разрабочик плюс"](https://practicum.yandex.ru/profile/python-developer-plus/) Яндекс Практикума.
 
-### Описание проекта
+## Технологии в проекте
+- React
+- Node
+- Python v.3.8
+- Django v.2.2.16
+- Django REST framework v.3.12.4
+- postgres v.13.0
+- Docker 
+- gunicorn v.20.1.0
+- nginx v.1.19.3
+- Git Actions
+
+## Функционал
 Сервис позволяет:
+- регистрировать, аутентифицировать и авторизовывать пользователей
 - смотреть, размещать и редактировать рецепты, 
 - добавлять их в избранное и/или корзину,
 - формировать список покупок инредиентов рейептов в корзине
+- администратору упралять контентом и пользователями
 
-Состоит из фронтэнда на JS и бекэнда на Python
+Полная [документация API](https://github.com/sldmxm/foodgram-project-react/tree/master/docs) проекта после запуска доступна по адресу: /api/docs/redoc/ в формате redoc
 
-Полная документация API проекта доступна по адресу: /api/docs/redoc/ в формате redoc
-
-Сервис выполнен в рамках курса ["Python-разрабочик плюс"](https://practicum.yandex.ru/profile/python-developer-plus/) Яндекс Практикума.
-
-### Установка проекта    
+## Установка проекта    
 Клонируйте репозиторий:
 ```
 git clone git@github.com:sldmxm/foodgram-project-react.git
@@ -55,14 +69,3 @@ docker cp <путь до директории с csv-файлами> <id>:backen
 
 docker-compose exec backend python manage.py import_ingredients 
 ```
-
-### Технологии в проекте
-- React
-- Node
-- Python v.3.8
-- Django v.2.2.16
-- Django REST framework v.3.12.4
-- postgres v.13.0
-- Docker 
-- gunicorn v.20.1.0
-- nginx v.1.19.3
